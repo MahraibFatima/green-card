@@ -1,10 +1,10 @@
 import React from 'react'
+import Navbar from './components/Navbar';
 
 function App() {
   return (
     <div>
-      <h1>Welcome to Green Cart</h1>
-    </div>
+      <Navbar/>    </div>
   )
 }
 
