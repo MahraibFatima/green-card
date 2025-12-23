@@ -31,7 +31,7 @@ const Navbar = () => {
             placeholder="Search products"
           />
           <img
-            src={assets.search}
+            src={assets.search_icon}
             alt="search"
             className="w-4 h-4 cursor-pointer"
           />
