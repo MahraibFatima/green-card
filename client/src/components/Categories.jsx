@@ -1,7 +1,7 @@
 import { categories } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
 
-function Categories() {
+const Categories= () => {
   const { navigate } = useAppContext();
   return (
     <div className="mt-16">
