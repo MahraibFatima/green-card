@@ -10,9 +10,10 @@ export const AppContextProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
-  const [showUserLogin, setShowUserLogin] = useState(true);
+  const [showUserLogin, setShowUserLogin] = useState(false);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
+  const[searchQuery, setSearchQuery]=useState("");
 
   // Cart functions
   const addToCart = (productId) => {
@@ -45,7 +46,6 @@ export const AppContextProvider = ({ children }) => {
     toast.success("Removed from cart");
   };
 
-  // Fetch products - you need to define where `data` comes from
 const fetchProducts = async() => {
         setProducts(dummyProducts);
     }
@@ -68,7 +68,9 @@ const fetchProducts = async() => {
     addToCart,
     updateCartItem,
     removeFromCart,
-    cartItems
+    cartItems,
+    searchQuery,
+    setSearchQuery
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
