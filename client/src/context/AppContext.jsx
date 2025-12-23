@@ -15,7 +15,6 @@ export const AppContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState({});
   const[searchQuery, setSearchQuery]=useState("");
 
-  // Cart functions
   const addToCart = (productId) => {
     let cartData = structuredClone(cartItems);
     if (cartData[productId]) {
@@ -49,6 +48,24 @@ export const AppContextProvider = ({ children }) => {
 const fetchProducts = async() => {
         setProducts(dummyProducts);
     }
+const getCartCount = () => {
+    let count = 0;
+    for (let key in cartItems) {
+      count += cartItems[key];
+    }
+    return count;
+  };
+
+const getCartAmount = () => {
+    let count = 0;
+    for (const key in cartItems) {
+      count += products.find((item) => item._id === key);
+      if(cartItems[key]){
+        count = count * cartItems[key];
+      }
+    }
+    return Math.floor(count*100)/100;
+  }
 
   useEffect(() => {
     fetchProducts();
@@ -70,7 +87,9 @@ const fetchProducts = async() => {
     removeFromCart,
     cartItems,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    getCartCount,
+    getCartAmount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
