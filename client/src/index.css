@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&display=swap');
 
 @import "tailwindcss";
 
@@ -6,7 +6,23 @@
   font-family: "Outfit", sans-serif;
 }
 
-@theme {
-  --color-primary : #4fbf8b;
-  --color-primary-dull: #44ae7c;
+@theme{ 
+  --color-primary: #4fbf8b; 
+  --color-primary-dull: #44ae7c; 
+}
+
+.list{
+  @apply p-1.5 pl-3 hover:bg-primary/10 cursor-pointer;
+}
+
+.log{
+  @apply cursor-pointer px-6 py-2 mt-2 bg-primary hover:bg-primary-dull transition text-white rounded-full text-sm;
+}
+
+.products{
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-6 lg:grid-cols-5 mt-6;
+}
+
+.no-scrollbar::-webkit-scrollbar{
+  display: none;
 }
