@@ -14,11 +14,11 @@ const BottomBanner=() =>{
         alt="banner"
         className="w-full md:hidden "
       />
-
+ 
       <div className="absolute inset-0 flex flex-col items-center md:items-end md:justify-center pt-16 md:pt-0 md:pr-24">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold text-primary mb-6">
-            Whe We Are the Best
+            Why We Are the Best?
           </h1>
           {features.map((feature, index) => (
             <div key={index} className="flex items-center gap-4 mt-2">
