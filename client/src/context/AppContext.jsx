@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { dummyProducts } from "../assets/assets";
-import axios from "axios";
 
 export const AppContext = createContext();
 
@@ -11,7 +10,7 @@ export const AppContextProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
-  const [showUserLogin, setShowUserLogin] = useState(false);
+  const [showUserLogin, setShowUserLogin] = useState(true);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
 
