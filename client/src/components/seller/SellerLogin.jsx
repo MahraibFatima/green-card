@@ -11,26 +11,12 @@ function SellerLogin() {
   const onSubmitHandler = async (event) => {
     try {
       event.preventDefault();
-      setIsLoading(true);
+      setIsSeller(true);
 
-      const { data } = await axios.post("/api/seller/login", {
-        email,
-        password,
-      });
-
-      if (data.success) {
-        setIsSeller(true);
-        toast.success("Login successful!");
-        navigate("/seller");
-      } else {
-        toast.error(data.message || "Login failed");
-      }
     } catch (error) {
       toast.error(
         error.response?.data?.message || error.message || "Login failed"
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -38,17 +24,7 @@ function SellerLogin() {
     if (isSeller) {
       navigate("/seller");
     }
-  }, [isSeller, navigate]);
-
-  useEffect(() => {
-    if (isSeller) {
-      navigate("/seller");
-    }
-  }, [isSeller, navigate]);
-
-  if (isSeller) {
-    return null;
-  }
+  }, [isSeller]);
 
   return (
     <form
