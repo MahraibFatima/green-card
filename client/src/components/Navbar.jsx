@@ -1,48 +1,42 @@
 import { NavLink } from "react-router-dom";
-import React, { use } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
-  const [open, setOpen] = React.useState(false);
-  const { user, setUser, setShowUserLogin, navigate , searchQuery, setSearchQuery, getCartCount} = useAppContext();
+  const [open, setOpen] = useState(false);
+  const {
+    user,
+    setUser,
+    setShowUserLogin,
+    navigate,
+    searchQuery,
+    setSearchQuery,
+    getCartCount,
+  } = useAppContext();
 
   const logout = async () => {
     setUser(null);
     navigate("/");
-    setOpen(false); 
+    setOpen(false);
   };
+
   useEffect(() => {
-    if(searchQuery.length > 0){
-        navigate('/products')
+    if (searchQuery.length > 0) {
+      navigate("/products");
     }
-  }, [searchQuery])
+  }, [searchQuery]);
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white relative transition-all">
       <NavLink to="/" onClick={() => setOpen(false)}>
-        <img className="h-9" src={assets.logo} alt="Logo"></img>
+        <img className="h-9" src={assets.logo} alt="Logo" />
       </NavLink>
 
       <div className="hidden sm:flex items-center gap-8">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/products">All Products</NavLink>
-        <NavLink to="/">Contact</NavLink>
-
-        <div className="hidden lg:flex items-center text-sm gap-2 border border-gray-300 px-3 rounded-full">
-          <input onChange={(e)=> setSearchQuery(e.target.value)}
-            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
-            type="text"
-            placeholder="Search products"
-          />
-          <img
-            src={assets.search_icon}
-            alt="search"
-            className="w-4 h-4 cursor-pointer"
-          />
-        </div>
-
+        <NavLink to="/faqs">FAQs</NavLink>
         <div
           onClick={() => navigate("/cart")}
           className="relative cursor-pointer"
@@ -53,39 +47,33 @@ const Navbar = () => {
           </button>
         </div>
 
-        {!user ? (
-          <button
-            onClick={() => setShowUserLogin(true)}
-            className="cursor-pointer px-8 py-2 bg-primary hover:bg-primary transition text-white rounded-full"
-          >
-            Login
-          </button>
-        ) : (
-          <div className="relative group cursor-pointer">
-            <img
-              src={assets.profile_icon}
-              className="w-10"
-              alt="profile icon"
-            />
-            <ul className="hidden group-hover:block absolute top-10 right-0 bg-white shadow border border-gray-200 py-2.5 w-30 rounded-md text-sm z-40">
-              <li
-                onClick={() => navigate("/my-orders")}
-                className="p-1 pl-3 hover:bg-primary/10 cursor-pointer"
-              >
-                My Orders
-              </li>
-              <li
-                onClick={logout}
-                className="p-1 pl-3 hover:bg-primary/10 cursor-pointer"
-              >
-                Logout
-              </li>
-            </ul>
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          {!user ? (
+            <button
+              onClick={() => setShowUserLogin(true)}
+              className="cursor-pointer px-6 py-2 bg-primary hover:bg-primary transition text-white rounded-full"
+            >
+              Login
+            </button>
+          ) : (
+            <div className="relative group cursor-pointer">
+              <img
+                src={assets.profile_icon}
+                className="w-10"
+                alt="profile icon" 
+                onClick={() =>{navigate("/profile"); setOpen(false)}}
+              />
+            </div>
+          )}
+        </div>
+
+        <NavLink to="/seller" className="text-sm cursor-pointer px-6 py-2 bg-primary hover:bg-primary transition text-white rounded-sm">
+          Become a Seller
+        </NavLink>
       </div>
-<div className="flex items-center gap-4 sm:hidden">
-  <div
+
+      <div className="flex items-center gap-4 sm:hidden">
+        <div
           onClick={() => navigate("/cart")}
           className="relative cursor-pointer"
         >
@@ -94,58 +82,80 @@ const Navbar = () => {
             {getCartCount()}
           </button>
         </div>
+
         <button
-        onClick={() => (open ? setOpen(false) : setOpen(true))}
-        aria-label="Menu"
-        className=""
-      >
-        <img
-          src={open ? assets.close_icon : assets.menu_icon} // Assuming you have a close icon
-          alt="menu"
-          className="w-6 h-6"
-        />
-      </button>
-</div>
-      
-
-      {/* Mobile Menu */}
-      {open && (
-        <div className="absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start gap-2 px-5 text-sm md:hidden z-50">
-          <NavLink to="/" onClick={() => setOpen(false)}>
-            Home
-          </NavLink>
-          <NavLink to="/products" onClick={() => setOpen(false)}>
-            All Products
-          </NavLink>
-          {user && (
-            <NavLink to="/my-orders" onClick={() => setOpen(false)}>
-              My Orders
+          onClick={() => setOpen(!open)}
+          aria-label="Menu"
+          className="flex items-center justify-center w-8 h-8"
+        >
+          <img
+            src={open ? assets.close_icon : assets.menu_icon}
+            alt="menu"
+            className="w-6 h-6"
+          />
+        </button>
+        {open && (
+          <div className="absolute top-full left-0 right-0 bg-white shadow-md py-4 flex flex-col items-start gap-3 px-5 text-sm z-50 border-t border-gray-200">
+            <NavLink
+              to="/"
+              onClick={() => setOpen(false)}
+              className="w-full py-2 hover:text-primary"
+            >
+              Home
             </NavLink>
-          )}
-          <NavLink to="/" onClick={() => setOpen(false)}>
-            Contact
-          </NavLink>
-
-          {!user ? (
-            <button
-              onClick={() => {
-                setOpen(false);
-                setShowUserLogin(true);
-              }}
-              className="w-full mt-2 cursor-pointer px-8 py-2 bg-primary hover:bg-primary transition text-white rounded-full"
+            <NavLink
+              to="/products"
+              onClick={() => setOpen(false)}
+              className="w-full py-2 hover:text-primary"
             >
-              Login
-            </button>
-          ) : (
-            <button
-              onClick={logout}
-              className="cursor-pointer px-6 py-2 mt-2 bg-primary hover:bg-primary transition text-white rounded-full text-sm"
+              All Products
+            </NavLink>
+            <NavLink
+              to="/faqs"
+              onClick={() => setOpen(false)}
+              className="w-full py-2 hover:text-primary"
             >
-              Logout
-            </button>
-          )}
-        </div>
-      )}
+              FAQs
+            </NavLink>
+            {user && (
+              <NavLink
+                to="/my-orders"
+                onClick={() => setOpen(false)}
+                className="w-full py-2 hover:text-primary"
+              >
+                My Orders
+              </NavLink>
+            )}
+            <NavLink
+              to="/seller"
+              onClick={() => setOpen(false)}
+              className="w-full py-2 hover:text-primary"
+            >
+              Become a Seller
+            </NavLink>
+            <div className="w-full pt-2 border-t border-gray-100 mt-2">
+              {!user ? (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    setShowUserLogin(true);
+                  }}
+                  className="w-full cursor-pointer px-8 py-2.5 bg-primary hover:bg-primary-dark transition text-white rounded-full"
+                >
+                  Login
+                </button>
+              ) : (
+                <button
+                  onClick={logout}
+                  className="w-full cursor-pointer px-8 py-2.5 bg-gray-800 hover:bg-gray-900 transition text-white rounded-full text-sm"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </nav>
   );
 };
