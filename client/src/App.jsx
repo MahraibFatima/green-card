@@ -19,7 +19,7 @@ import AddProduct from "./pages/Seller/AddProduct";
 import Orders from "./pages/Seller/Orders";
 import ProductList from "./pages/Seller/ProductList";
 import Loading from "./components/Loading";
-import Profile from "./components/Profile";
+import Profile from "./pages/Profile";
 import Faqs from "./components/Faqs";
 function App() {
   const isSellerPath = useLocation().pathname.includes("seller");
