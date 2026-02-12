@@ -1,20 +1,57 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const Login = () => {
-  const { setShowUserLogin, setUser } = useAppContext();
+  const { setShowUserLogin, setUser, navigate } = useAppContext();
   const [state, setState] = React.useState("login");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
   
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-    setUser({
-      email: "jam@mail.com",
-      name: "Jam"
-    })
-    setShowUserLogin(false);
+    setLoading(true);
+    
+    try {
+      if (state === "register") {
+        const response = await axios.post('/api/auth/register', {
+          name,
+          email,
+          password
+        });
+        
+        if (response.data.message) {
+          toast.success(response.data.message);
+          setState("login");
+          setName("");
+          setPassword("");
+        }
+      } else {
+        const response = await axios.post('/api/auth/login', {
+          email,
+          password
+        });
+        
+        if (response.data.user) {
+          setUser(response.data.user);
+          toast.success(response.data.message);
+          setShowUserLogin(false);
+          setEmail("");
+          setPassword("");
+          navigate('/');
+        } else {
+          toast.error(response.data.message);
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      toast.error(error.response?.data?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   }
   
   return (
@@ -99,10 +136,12 @@ const Login = () => {
           )}
         </div>
         
-        <button className="mt-4 bg-primary hover:bg-primary-dull transition-all 
-        text-white w-full py-3 rounded-md cursor-pointer font-medium text-base
-        hover:shadow-md active:scale-[0.98]">
-          {state === "register" ? "Create Account" : "Login"}
+        <button 
+          disabled={loading}
+          className="mt-4 bg-primary hover:bg-primary-dull transition-all 
+          text-white w-full py-3 rounded-md cursor-pointer font-medium text-base
+          hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+          {loading ? "Processing..." : state === "register" ? "Create Account" : "Login"}
         </button>
 
       </form>
