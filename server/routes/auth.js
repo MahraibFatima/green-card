@@ -172,4 +172,20 @@ router.post('/resend-verification', async (req, res) => {
     }
 });
 
+router.post('/logout', (req, res) => {
+    try {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                return res.status(500).json({ success: false, message: 'Logout failed' });
+            }
+            res.clearCookie('connect.sid');
+            return res.status(200).json({ success: true, message: 'Logged out successfully' });
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ success: false, message: 'Server error during logout' });
+    }
+});
+
 module.exports = router;
