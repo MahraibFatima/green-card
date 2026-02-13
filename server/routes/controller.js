@@ -1,6 +1,7 @@
 const crypto = require('crypto');
-const User = require('./models/User');
-const sendEmail = require('./utils/sendEmail'); 
+const User = require('../models/user');
+const sendEmail = require('../utils/sendEmail'); 
+
 async function registerUser(userData) {
     try {
         const verificationToken = crypto.randomBytes(32).toString('hex');
