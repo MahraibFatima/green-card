@@ -34,7 +34,16 @@ const Navbar = () => {
       </NavLink>
 
       <div className="hidden sm:flex items-center gap-8">
-        <NavLink to="/">Home</NavLink>
+        <div className="flex items-center gap-2 border border-gray-300 rounded-full px-4 py-2">
+          <img src={assets.search_icon} alt="search" className="w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="outline-none flex-1 text-sm"
+          />
+        </div>
         <NavLink to="/products">All Products</NavLink>
         <NavLink to="/faqs">FAQs</NavLink>
         <div
