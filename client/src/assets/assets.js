@@ -153,7 +153,7 @@ export const footerLinks = [
       { text: "Best Sellers", url: "#" },
       { text: "Offers & Deals", url: "#" },
       { text: "Contact Us", url: "#" },
-      { text: "FAQs", url: "#" },
+      { text: "FAQs", url: "/faq" },
     ],
   },
   {
@@ -162,7 +162,7 @@ export const footerLinks = [
       { text: "Delivery Information", url: "#" },
       { text: "Return & Refund Policy", url: "#" },
       { text: "Payment Methods", url: "#" },
-      { text: "Track your Order", url: "#" },
+      { text: "Track your Order", url: "/my-orders" },
       { text: "Contact Us", url: "#" },
     ],
   },
@@ -840,4 +840,22 @@ export const dummyOrders = [
     createdAt: "2025-03-25T07:17:13.068Z",
     updatedAt: "2025-03-25T07:17:13.068Z",
   },
+];
+export const dummyRefunds = [
+  {
+    _id: "67e2590a8f87e63366786405",
+    orderId: "67e2589a8f87e63366786400",
+    userId: "67b5880e4d09769c5ca61644",
+    amount: 89,
+    reason: "Product damaged",
+    status: "Refunded",
+    createdAt: "2025-03-25T07:17:46.018Z",
+    updatedAt: "2025-03-25T07:18:13.103Z",
+  },
+];  
+export const dummyTrackingSteps = [
+  { label: "Order Placed", completed: true },
+  { label: "Order Confirmed", completed: true },
+  { label: "Out for Delivery", completed: false },
+  { label: "Delivered", completed: false },
 ];
