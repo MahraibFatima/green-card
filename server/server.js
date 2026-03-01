@@ -2,6 +2,10 @@ const express = require('express');
 require('dotenv').config();
 const app = express();
 const auth = require('./routes/auth');
+const address = require('./routes/address');
+const payment = require('./routes/payment');
+const cart = require('./routes/cart');
+const orders = require('./routes/orders');
 const session = require('express-session');
 require('./conn/conn');
 const cors = require('cors');
@@ -29,6 +33,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', auth);
+app.use('/api/address', address);
+app.use('/api/payment', payment);
+app.use('/api/cart', cart);
+app.use('/api/orders', orders);
 
 
 app.listen(process.env.PORT, () => {
