@@ -5,7 +5,7 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import toast from "react-hot-toast";
 
 function SellerLayout() {
-  const { setIsSeller } = useAppContext();
+  const { setIsSeller, user } = useAppContext();
 
   const sidebarLinks = [
     { name: "Add Product", path: "/seller", icon: assets.add_icon },
@@ -29,7 +29,7 @@ function SellerLayout() {
         </Link>
 
         <div className="flex items-center gap-5 text-gray-500">
-          <p>Hi! Admin</p>
+            <p>Hello, {user?.name || 'Seller'}</p>
           <button
             onClick={logout}
             className="border rounded-full text-sm px-4 py-1 "
