@@ -22,6 +22,8 @@ const Cart=() =>{
   const [showAddress, setShowAddress] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentOption, setPaymentOption] = useState("COD");
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [defaultPayment, setDefaultPayment] = useState(null);
 
   const getCart = () => {
     let tempArray = [];
@@ -34,21 +36,108 @@ const Cart=() =>{
   };
 
   const getUserAddress = async () => {
+    if (!user?._id) return;
     try {
-      const { data } = await axios.get("/api/address/get");
+      const { data } = await axios.get(`http://localhost:5000/api/address/${user._id}`);
       if (data.success) {
         setAddresses(data.addresses);
+        // Set the first address as default, or you can add a default flag in schema
         if (data.addresses.length > 0) {
           setSelectedAddress(data.addresses[0]);
-        } else {
-          toast.error(data.message);
         }
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Failed to fetch addresses:", error);
+    }
+  };
+
+  const getUserPaymentMethods = async () => {
+    if (!user?._id) return;
+    try {
+      const { data } = await axios.get(`http://localhost:5000/api/payment/${user._id}`);
+      if (data.success) {
+        setPaymentMethods(data.paymentMethods);
+        // Find default payment method
+        const defaultPM = data.paymentMethods.find(pm => pm.isDefault);
+        if (defaultPM) {
+          setDefaultPayment(defaultPM);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch payment methods:", error);
     }
   };
   const placeOrder = async () => {
+    if (!user?._id) {
+      toast.error("Please login to place an order");
+      return;
+    }
+
+    if (!selectedAddress) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+
+    if (paymentOption !== "COD" && !defaultPayment && paymentMethods.length === 0) {
+      toast.error("Please add a payment method or choose Cash on Delivery");
+      return;
+    }
+
+    if (cartArray.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    try {
+      // Prepare order data
+      const orderData = {
+        userId: user._id,
+        items: cartArray.map(item => ({
+          productId: item._id,
+          product: {
+            name: item.name,
+            image: item.image,
+            category: item.category,
+            offerPrice: item.offerPrice,
+            weight: item.weight
+          },
+          quantity: item.quantity,
+          price: item.offerPrice
+        })),
+        address: {
+          street: selectedAddress.street,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipCode: selectedAddress.zipCode || '',
+          country: selectedAddress.country
+        },
+        paymentType: paymentOption,
+        amount: getCartAmount() + (getCartAmount() * 2) / 100,
+        status: 'placed'
+      };
+
+      // Create order in backend
+      const { data } = await axios.post(`http://localhost:5000/api/orders`, orderData);
+      
+      if (data.success) {
+        toast.success("Order placed successfully!");
+        
+        // Clear cart from backend
+        await axios.delete(`http://localhost:5000/api/cart/${user._id}`);
+        
+        // Clear cart in frontend
+        setCartItems({});
+        
+        // Navigate to orders page or tracking page
+        navigate(`/my-orders`);
+        scrollTo(0, 0);
+      } else {
+        toast.error(data.message || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("Failed to place order:", error);
+      toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -60,6 +149,7 @@ const Cart=() =>{
   useEffect(() => {
     if (user) {
       getUserAddress();
+      getUserPaymentMethods();
     }
   }, [user]);
 
@@ -167,26 +257,39 @@ const Cart=() =>{
         <div className="mb-6">
           <p className="text-sm font-medium uppercase">Delivery Address</p>
           <div className="relative flex justify-between items-start mt-2">
-            <p className="text-gray-500">
-              {selectedAddress
-                ? `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state}, ${selectedAddress.country}`
-                : "No address found"}
-            </p>
-            <button
-              onClick={() => setShowAddress(!showAddress)}
-              className="text-primary hover:underline cursor-pointer"
-            >
-              Change
-            </button>
+            {selectedAddress ? (
+              <p className="text-gray-500">
+                {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state}, {selectedAddress.country}
+              </p>
+            ) : (
+              <p className="text-red-500 text-sm">
+                No address found.{" "}
+                <span
+                  onClick={() => navigate("/add-address")}
+                  className="text-primary cursor-pointer hover:underline"
+                >
+                  Add address
+                </span>
+              </p>
+            )}
+            {addresses.length > 0 && (
+              <button
+                onClick={() => setShowAddress(!showAddress)}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                Change
+              </button>
+            )}
             {showAddress && (
-              <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full">
+              <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full z-10">
                 {addresses.map((address, index) => (
                   <p
+                    key={index}
                     onClick={() => {
                       setSelectedAddress(address);
                       setShowAddress(false);
                     }}
-                    className="text-gray-500 p-2 hover:bg-gray-100"
+                    className="text-gray-500 p-2 hover:bg-gray-100 cursor-pointer"
                   >
                     {address.street}, {address.city}, {address.state},{" "}
                     {address.country}
@@ -206,11 +309,32 @@ const Cart=() =>{
 
           <select
             onChange={(e) => setPaymentOption(e.target.value)}
+            value={paymentOption}
             className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none"
           >
             <option value="COD">Cash On Delivery</option>
-            <option value="Online">Online Payment</option>
+            {defaultPayment && (
+              <option value="Card">
+                {defaultPayment.cardType} **** {defaultPayment.cardNumber}
+              </option>
+            )}
+            {!defaultPayment && paymentMethods.length > 0 && (
+              <option value="Card">
+                {paymentMethods[0].cardType} **** {paymentMethods[0].cardNumber}
+              </option>
+            )}
           </select>
+          {paymentOption !== "COD" && !defaultPayment && paymentMethods.length === 0 && (
+            <p className="text-xs text-red-500 mt-1">
+              No payment method found.{" "}
+              <span
+                onClick={() => navigate("/payment-methods")}
+                className="text-primary cursor-pointer hover:underline"
+              >
+                Add one
+              </span>
+            </p>
+          )}
         </div>
 
         <hr className="border-gray-300" />
