@@ -24,8 +24,8 @@ import Faqs from "./components/Faqs";
 import Refund from "./pages/Refund";
 import Tracking from "./pages/Tracking";
 import PaymentMethods from "./pages/PaymentMethods";
-import { ProtectedRoute, PublicRoute, SellerProtectedRoute } from "./protectedRoutes";
-
+import { ProtectedRoute, PublicRoute, SellerProtectedRoute } from "./routes/protectedRoutes";
+import { ShopDashboard } from "./routes/shopRoutes";
 function App() {
   const isSellerPath = useLocation().pathname.includes("seller");
   const { showUserLogin, isSeller } = useAppContext();
