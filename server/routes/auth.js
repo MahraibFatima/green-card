@@ -188,4 +188,104 @@ router.post('/logout', (req, res) => {
     }
 });
 
+router.post('/seller/register', async (req, res) => {
+    try {
+        const { name, email, password, shopName, shopPhone } = req.body;
+        
+        const existingSeller = await User.findOne({ email });
+        if (existingSeller) {
+            return res.status(200).json({ message: 'Email already registered' });
+        }
+        
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        
+        const verificationTokenExpires = new Date();
+        verificationTokenExpires.setHours(verificationTokenExpires.getHours() + 24);
+        
+        const seller = new User({ 
+            name, 
+            email, 
+            password: hashedPassword,
+            role: 'seller',
+            shopName,
+            shopPhone,
+            verificationToken: verificationToken,
+            verificationTokenExpires: verificationTokenExpires
+        });
+        
+        await seller.save();
+        
+        const verificationLink = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
+        
+        try {
+            await sendEmail({
+                to: seller.email,
+                subject: 'Verify Your Seller Account',
+                html: `
+                    <h1>Seller Account Verification</h1>
+                    <p>Hello ${name || 'Seller'},</p>
+                    <p>Welcome to our platform! Please click the link below to verify your seller account:</p>
+                    <a href="${verificationLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Verify Account</a>
+                    <p>Or copy and paste this link: ${verificationLink}</p>
+                    <p>This link will expire in 24 hours.</p>
+                    <p>Shop Name: ${shopName}</p>
+                    <p>If you didn't create this account, please ignore this email.</p>
+                `
+            });
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+        }
+        
+        res.status(201).json({ 
+            message: 'Seller registered successfully! Please check your email to verify your account.',
+            seller: {
+                id: seller._id,
+                name: seller.name,
+                email: seller.email,
+                shopName: seller.shopName,
+                isVerified: seller.isVerified
+            }
+        });
+    } catch (error) {
+        console.error('Seller registration error:', error);
+        res.status(500).json({ message: 'Server error during registration' });
+    }
+});
+
+router.post('/seller/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const seller = await User.findOne({ email, role: 'seller' });
+        if (!seller) {
+            return res.status(200).json({ message: 'Seller account not found. Please sign up first.' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, seller.password);
+        if (!isPasswordValid) {
+            return res.status(200).json({ message: 'Invalid credentials' });
+        }
+
+        if (!seller.isVerified) {
+            return res.status(200).json({ 
+                message: 'Please verify your email before logging in.',
+                isVerified: false,
+                email: seller.email
+            });
+        }
+        
+        const { password: _, ...sellerWithoutPassword } = seller._doc;
+        
+        res.status(200).json({ 
+            message: 'Login successful',
+            seller: sellerWithoutPassword
+        });
+    } catch (error) {
+        console.error('Seller login error:', error);
+        res.status(500).json({ message: 'Server error during login' });
+    }
+});
+
 module.exports = router;
