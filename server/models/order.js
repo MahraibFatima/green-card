@@ -50,6 +50,23 @@ const orderSchema = new mongoose.Schema({
     enum: ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],
     default: 'placed'
   },
+  statusHistory: [
+    {
+      status: {
+        type: String,
+        enum: ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],
+        required: true,
+      },
+      note: {
+        type: String,
+        trim: true,
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now
@@ -60,9 +77,8 @@ const orderSchema = new mongoose.Schema({
   }
 });
 
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 module.exports = mongoose.model('Order', orderSchema);
