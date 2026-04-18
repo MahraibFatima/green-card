@@ -50,6 +50,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/faqs" element={<Faqs />} />
           <Route path="/tracking" element={<ProtectedRoute element={<Tracking />} />} />
+          <Route path="/tracking/:orderId" element={<ProtectedRoute element={<Tracking />} />} />
           <Route path="/refund" element={<ProtectedRoute element={<Refund />} />} />
           <Route path="/add-address" element={<ProtectedRoute element={<AddAddress />} />} />
           <Route path="/my-orders" element={<ProtectedRoute element={<MyOrders />} />} />
