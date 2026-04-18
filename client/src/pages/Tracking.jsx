@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
 import { IoCheckmarkDone } from 'react-icons/io5'
 import { MdLocalShipping } from 'react-icons/md'
@@ -11,25 +11,39 @@ const Tracking = () => {
   const [loading, setLoading] = useState(true)
 
   const fetchOrderDetails = async () => {
-    if (!user?._id || !orderId) {
+    
+    if(!user || !orderId) {
       setLoading(false)
       return
     }
-
-    try {
-      const { data } = await axios.get(`http://localhost:5000/api/orders/${user._id}/${orderId}`)
-      if (data.success) {
-        setOrder(data.order)
-      }
-    } catch (error) {
-      console.error("Failed to fetch order:", error)
+    try{
+      const {data} = await axios.get(`http://localhost:5000/api/orders/${user._id}/${orderId}/tracking`)
+      setOrder(data?.tracking || null)
+    }catch{
+      setOrder(null)
+    }finally{
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
     fetchOrderDetails()
   }, [user, orderId])
+
+  if (!orderId) {
+    return (
+      <div className="w-full p-6 mt-16 flex flex-col items-center justify-center">
+        <p className="text-gray-700 text-xl font-medium mb-2">Choose an order to track</p>
+        <p className="text-gray-500 mb-4 text-center">Tracking needs an order ID. Open your orders and select Track Order.</p>
+        <Link
+          to="/my-orders"
+          className="px-5 py-2.5 rounded-md bg-primary text-white font-medium hover:opacity-90 transition"
+        >
+          Go to My Orders
+        </Link>
+      </div>
+    )
+  }
 
   const getTrackingSteps = (status) => {
     const steps = [
@@ -61,12 +75,13 @@ const Tracking = () => {
     return (
       <div className="w-full p-6 mt-16 flex flex-col items-center justify-center">
         <p className="text-gray-500 text-xl font-medium mb-2">Order Not Found</p>
-        <p className="text-gray-400">The order you're looking for doesn't exist.</p>
+<p className="text-gray-400">The order you're looking for doesn't exist.</p>
       </div>
     )
   }
 
   const trackingSteps = getTrackingSteps(order.status)
+  const displayOrderId = (order.orderId || order._id || '').toString()
 
   return (
     <div className="w-full p-6 mt-16">
@@ -77,7 +92,7 @@ const Tracking = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-sm text-gray-600 mb-1">Order ID</p>
-            <p className="font-semibold text-gray-900">{order._id.slice(-8)}</p>
+            <p className="font-semibold text-gray-900">{displayOrderId ? displayOrderId.slice(-8) : 'N/A'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600 mb-1">Order Date</p>
