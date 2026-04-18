@@ -57,7 +57,7 @@ const AddressCard = ({ address, onDelete }) => (
 );
 
 export default function AddAddress() {
-  const { axios, user, navigate, API_URL } = useAppContext();
+  const { axios, user, navigate, API_URL, refreshUser } = useAppContext();
   const [addresses, setAddresses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -155,6 +155,10 @@ export default function AddAddress() {
         });
         setShowForm(false);
         fetchAddresses();
+        // Refresh user data in context to reflect new address
+        if (user?._id && typeof refreshUser === 'function') {
+          await refreshUser();
+        }
       } else {
         toast.error(data.message);
       }
