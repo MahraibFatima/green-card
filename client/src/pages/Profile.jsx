@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import toast from "react-hot-toast";
 import { MdForwardToInbox } from "react-icons/md";
 import { IoIosLogOut, IoMdCart } from "react-icons/io";
@@ -11,17 +11,59 @@ import { FaAddressCard } from "react-icons/fa6";
 import { CgProfile } from "react-icons/cg";
 import { AiOutlineCamera } from "react-icons/ai";
 import { FaCartPlus } from "react-icons/fa";
-import {useSelector} from "react-redux";
 import axios from "axios";
 function Profile() {
-  const { showUserLogin } = useAppContext();
-  // const user = useSelector();
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("johndoe@example.com");
-  const [phone, setPhone] = useState("123-456-7890");
-  const [zipCode, setZipCode] = useState("12345");
-  const [address, setAddress] = useState("123 Main St, Anytown, USA");
-  const[country, setCountry] = useState("USA");
+  const { user, setUser, setIsSeller, navigate } = useAppContext();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("");
+
+  // useEffect(() => {
+  //   const primaryAddress = user?.addresses?.[0] || {};
+  //   const mergedAddress = [primaryAddress.street, primaryAddress.city, primaryAddress.state]
+  //     .filter(Boolean)
+  //     .join(", ");
+
+  //   setName(user?.name || "");
+  //   setEmail(user?.email || "");
+  //   setPhone(primaryAddress.phone || "");
+  //   setZipCode(primaryAddress.zipcode ? String(primaryAddress.zipcode) : "");
+  //   setAddress(mergedAddress);
+  //   setCountry(primaryAddress.country || "");
+  // }, [user]);
+
+  useEffect(() => {
+    const primaryAddress= user?.addresses?.[0] || {};
+    setName(user?.name || "");
+    setEmail(user?.email || "");
+    setPhone(primaryAddress.phone || "");
+    setZipCode(primaryAddress.zipcode ? String(primaryAddress.zipcode) : "");
+    const mergedAddress = [primaryAddress.street, primaryAddress.city, primaryAddress.state]
+      .filter(Boolean)
+      .join(", ");
+    setAddress(mergedAddress);
+    setCountry(primaryAddress.country || "");
+  }, [user]);
+
+  const logout = async () => {
+    try {
+      const response = await axios.post("/api/auth/logout", {}, { withCredentials: true });
+      if (response.data.success) {
+        setUser(null);
+        setIsSeller(false);
+        toast.success("Logged out successfully");
+        navigate("/");
+      } else {
+        toast.error(response.data.message || "Logout failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred during logout");
+    }
+  };
+  
   const sidebarLinks = [
     { name: "Profile", path: "/profile", icon: CgProfile, isImage: false },
     { name: "Orders", path: "/my-orders", icon: assets.order_icon, isImage: true },
@@ -34,19 +76,6 @@ function Profile() {
     { name: "Logout", path: "/", icon: IoIosLogOut, isImage: false,
       onClick: () => {logout();}},
   ];
-
-  const logout = async () => {
-    axios.get("/logout", {withCredentials: true}).then((response) => {
-      if (response.data.success) {
-        toast.success("Logged out successfully");
-        window.location.href = "/";
-      } else {
-        toast.error("Logout failed");
-      }
-    }).catch((error) => {
-      toast.error("An error occurred during logout");
-    });
-  };
   const submitHandler = (e) => {
     e.preventDefault();
     toast.success("Profile updated successfully");
