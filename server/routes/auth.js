@@ -288,4 +288,26 @@ router.post('/seller/login', async (req, res) => {
     }
 });
 
+// Get user data by ID (for refreshing user in frontend)
+router.get('/user/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const { password: _, ...userWithoutPassword } = user._doc;
+        
+        res.status(200).json({ 
+            success: true,
+            user: userWithoutPassword
+        });
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ message: 'Server error fetching user' });
+    }
+});
+
 module.exports = router;

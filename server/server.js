@@ -6,6 +6,7 @@ const address = require('./routes/address');
 const payment = require('./routes/payment');
 const cart = require('./routes/cart');
 const orders = require('./routes/orders');
+const refunds = require('./routes/refunds');
 const session = require('express-session');
 require('./conn/conn');
 const cors = require('cors');
@@ -37,6 +38,7 @@ app.use('/api/address', address);
 app.use('/api/payment', payment);
 app.use('/api/cart', cart);
 app.use('/api/orders', orders);
+app.use('/api/refunds', refunds);
 
 
 app.listen(process.env.PORT, () => {
