@@ -15,6 +15,67 @@ const STEP_LABELS = {
   cancelled: 'Cancelled',
 };
 
+const buildSellerOrders = async (sellerId) => {
+  const orders = await Order.find({ 'items.sellerId': sellerId }).sort({ createdAt: -1 });
+
+  await Promise.all(orders.map((order) => maybeAdvanceOrderStatus(order)));
+
+  const userIds = [...new Set(orders.map((order) => order.userId).filter(Boolean))];
+  const users = await User.find({ _id: { $in: userIds } }).select('name email addresses');
+  const userMap = new Map(users.map((user) => [String(user._id), user]));
+
+  return orders
+    .map((orderDoc) => {
+      const order = orderDoc.toObject();
+      const sellerItems = (order.items || []).filter(
+        (item) => String(item.sellerId || '') === String(sellerId)
+      );
+
+      if (sellerItems.length === 0) {
+        return null;
+      }
+
+      const user = userMap.get(String(order.userId));
+      const fallbackAddress = user?.addresses?.[0] || {};
+
+      const customerName =
+        order.customer?.name ||
+        user?.name ||
+        [order.address?.firstName, order.address?.lastName].filter(Boolean).join(' ').trim() ||
+        'Customer';
+
+      const customerEmail = order.customer?.email || user?.email || order.address?.email || '';
+      const customerPhone = order.customer?.phone || order.address?.phone || fallbackAddress.phone || '';
+
+      return {
+        ...order,
+        items: sellerItems,
+        sellerAmount: sellerItems.reduce(
+          (sum, item) => sum + Number(item.price || item.product?.offerPrice || 0) * Number(item.quantity || 0),
+          0
+        ),
+        customer: {
+          userId: order.userId,
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+        },
+        address: {
+          street: order.address?.street || fallbackAddress.street || '',
+          city: order.address?.city || fallbackAddress.city || '',
+          state: order.address?.state || fallbackAddress.state || '',
+          zipCode:
+            order.address?.zipCode ||
+            order.address?.zipcode ||
+            (fallbackAddress.zipcode ? String(fallbackAddress.zipcode) : ''),
+          country: order.address?.country || fallbackAddress.country || '',
+          phone: order.address?.phone || fallbackAddress.phone || '',
+        },
+      };
+    })
+    .filter(Boolean);
+};
+
 const maybeAdvanceOrderStatus = async (order) => {
   if (!order) return;
 
@@ -171,65 +232,7 @@ router.get('/:userId/:orderId/tracking', async (req, res) => {
 router.get('/seller/:sellerId', async (req, res) => {
   try {
     const { sellerId } = req.params;
-
-    const orders = await Order.find({ 'items.sellerId': sellerId }).sort({ createdAt: -1 });
-
-    await Promise.all(orders.map((order) => maybeAdvanceOrderStatus(order)));
-
-    const userIds = [...new Set(orders.map((order) => order.userId).filter(Boolean))];
-    const users = await User.find({ _id: { $in: userIds } }).select('name email addresses');
-    const userMap = new Map(users.map((user) => [String(user._id), user]));
-
-    const sellerOrders = orders
-      .map((orderDoc) => {
-        const order = orderDoc.toObject();
-        const sellerItems = (order.items || []).filter(
-          (item) => String(item.sellerId || '') === String(sellerId)
-        );
-
-        if (sellerItems.length === 0) {
-          return null;
-        }
-
-        const user = userMap.get(String(order.userId));
-        const fallbackAddress = user?.addresses?.[0] || {};
-
-        const customerName =
-          order.customer?.name ||
-          user?.name ||
-          [order.address?.firstName, order.address?.lastName].filter(Boolean).join(' ').trim() ||
-          'Customer';
-
-        const customerEmail = order.customer?.email || user?.email || order.address?.email || '';
-        const customerPhone = order.customer?.phone || order.address?.phone || fallbackAddress.phone || '';
-
-        return {
-          ...order,
-          items: sellerItems,
-          sellerAmount: sellerItems.reduce(
-            (sum, item) => sum + Number(item.price || item.product?.offerPrice || 0) * Number(item.quantity || 0),
-            0
-          ),
-          customer: {
-            userId: order.userId,
-            name: customerName,
-            email: customerEmail,
-            phone: customerPhone,
-          },
-          address: {
-            street: order.address?.street || fallbackAddress.street || '',
-            city: order.address?.city || fallbackAddress.city || '',
-            state: order.address?.state || fallbackAddress.state || '',
-            zipCode:
-              order.address?.zipCode ||
-              order.address?.zipcode ||
-              (fallbackAddress.zipcode ? String(fallbackAddress.zipcode) : ''),
-            country: order.address?.country || fallbackAddress.country || '',
-            phone: order.address?.phone || fallbackAddress.phone || '',
-          },
-        };
-      })
-      .filter(Boolean);
+    const sellerOrders = await buildSellerOrders(sellerId);
 
     return res.status(200).json({
       success: true,
@@ -240,6 +243,78 @@ router.get('/seller/:sellerId', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch seller orders',
+      error: error.message,
+    });
+  }
+});
+
+// Get seller dashboard analytics
+router.get('/seller/:sellerId/dashboard', async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const sellerOrders = await buildSellerOrders(sellerId);
+
+    const productMap = new Map();
+    const categoryMap = new Map();
+
+    let totalPayment = 0;
+    let totalItemsSold = 0;
+
+    sellerOrders.forEach((order) => {
+      const includeInPayment = order.status !== 'cancelled';
+      if (includeInPayment) {
+        totalPayment += Number(order.sellerAmount || 0);
+      }
+
+      (order.items || []).forEach((item) => {
+        const quantity = Number(item.quantity || 0);
+        const revenue = Number(item.price || item.product?.offerPrice || 0) * quantity;
+        const productName = item.product?.name || 'Unknown Product';
+        const categoryName = item.product?.category || 'Uncategorized';
+
+        totalItemsSold += quantity;
+
+        if (!productMap.has(productName)) {
+          productMap.set(productName, { name: productName, quantity: 0, revenue: 0 });
+        }
+        const productAgg = productMap.get(productName);
+        productAgg.quantity += quantity;
+        productAgg.revenue += revenue;
+
+        if (!categoryMap.has(categoryName)) {
+          categoryMap.set(categoryName, { category: categoryName, quantity: 0, revenue: 0 });
+        }
+        const categoryAgg = categoryMap.get(categoryName);
+        categoryAgg.quantity += quantity;
+        categoryAgg.revenue += revenue;
+      });
+    });
+
+    const topProducts = Array.from(productMap.values())
+      .sort((a, b) => b.quantity - a.quantity || b.revenue - a.revenue)
+      .slice(0, 5);
+
+    const topCategories = Array.from(categoryMap.values())
+      .sort((a, b) => b.quantity - a.quantity || b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return res.status(200).json({
+      success: true,
+      dashboard: {
+        totalOrders: sellerOrders.length,
+        totalPayment: Math.round(totalPayment * 100) / 100,
+        totalItemsSold,
+        topProduct: topProducts[0] || null,
+        topProducts,
+        topCategory: topCategories[0] || null,
+        topCategories,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching seller dashboard:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch seller dashboard',
       error: error.message,
     });
   }
