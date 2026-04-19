@@ -15,6 +15,14 @@ const Navbar = () => {
     getCartCount,
   } = useAppContext();
 
+  const resolveProfileImage = (imagePath) => {
+    if (!imagePath) return assets.profile_icon;
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
+    }
+    return `http://localhost:5000${imagePath}`;
+  };
+
   const logout = async () => {
     setUser(null);
     navigate("/");
@@ -67,7 +75,7 @@ const Navbar = () => {
           ) : (
             <div className="relative group cursor-pointer">
               <img
-                src={assets.profile_icon}
+                src={resolveProfileImage(user?.profileImage)}
                 className="w-10"
                 alt="profile icon" 
                 onClick={() =>{navigate("/profile"); setOpen(false)}}
