@@ -94,6 +94,7 @@ const Cart=() =>{
         userId: user._id,
         items: cartArray.map(item => ({
           productId: item._id,
+          sellerId: item.sellerId ? String(item.sellerId) : undefined,
           product: {
             name: item.name,
             image: item.image,
@@ -105,11 +106,22 @@ const Cart=() =>{
           price: item.offerPrice
         })),
         address: {
+          firstName: selectedAddress.firstName || "",
+          lastName: selectedAddress.lastName || "",
+          email: selectedAddress.email || user.email || "",
+          phone: selectedAddress.phone || "",
           street: selectedAddress.street,
           city: selectedAddress.city,
           state: selectedAddress.state,
-          zipCode: selectedAddress.zipCode || '',
+          zipCode: selectedAddress.zipCode || selectedAddress.zipcode || '',
+          zipcode: selectedAddress.zipcode || selectedAddress.zipCode || '',
           country: selectedAddress.country
+        },
+        customer: {
+          userId: user._id,
+          name: user.name || `${selectedAddress.firstName || ""} ${selectedAddress.lastName || ""}`.trim(),
+          email: user.email || selectedAddress.email || "",
+          phone: selectedAddress.phone || "",
         },
         paymentType: paymentOption,
         amount: getCartAmount() + (getCartAmount() * 2) / 100,
