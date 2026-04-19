@@ -24,8 +24,10 @@ import Faqs from "./components/Faqs";
 import Refund from "./pages/Refund";
 import Tracking from "./pages/Tracking";
 import PaymentMethods from "./pages/PaymentMethods";
+import Inbox from "./pages/Inbox";
 import { ProtectedRoute, PublicRoute, SellerProtectedRoute } from "./routes/protectedRoutes";
 import { ShopDashboard } from "./routes/shopRoutes";
+import SellerInbox from "./pages/Seller/SellerInbox";
 function App() {
   const isSellerPath = useLocation().pathname.includes("seller");
   const { showUserLogin, isSeller } = useAppContext();
@@ -37,12 +39,12 @@ function App() {
 
       <Toaster />
       <div
-        className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-24 xl:px-32"} `}
+        className={`${isSellerPath ? "" : "px-6 md:px-16 lg:px-2  4 xl:px-32"} `}
       >
         <Routes>
 
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+          <Route path="/profile" element={<ProtectedRoute element={<Profile />} isProfileRoute={true} />} />
           <Route path="/login" element={<PublicRoute element={<Login />} />} />
           <Route path="/products" element={<AllProducts />} />
           <Route path="/products/:category" element={<ProductCategory />} />
@@ -55,11 +57,14 @@ function App() {
           <Route path="/add-address" element={<ProtectedRoute element={<AddAddress />} />} />
           <Route path="/my-orders" element={<ProtectedRoute element={<MyOrders />} />} />
           <Route path="/payment-methods" element={<ProtectedRoute element={<PaymentMethods />} />} />
+          <Route path="/inbox" element={<ProtectedRoute element={<Inbox />} />} />
           <Route path="/loader" element={<Loading />} />
           <Route path="/seller" element={<SellerProtectedRoute element={isSeller ? <SellerLayout /> : <SellerLogin />} isSeller={isSeller} />}>
+            <Route path="shop-dashboard" element={<ShopDashboard />} />
             <Route index element={isSeller ? <AddProduct /> : null} />
             <Route path="product-list" element={<ProductList />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="inbox" element={<SellerInbox />} />
           </Route>
         </Routes>
       </div>

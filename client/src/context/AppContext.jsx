@@ -40,6 +40,18 @@ export const AppContextProvider = ({ children }) => {
     }
   }, [user]);
 
+  // Function to refresh user data from backend
+  const refreshUser= async() =>{
+    if(!user?._id) return;
+    try{
+      const {data } = await axios.get(`${API_URL}/auth/user/${user._id}`);
+      if(data.user){
+        setUser(data.user)
+      }
+    }catch (error){
+      console.error("Failed to refresh user:", error);
+    }
+  }
   // Fetch cart from backend
   const fetchCartFromBackend = async () => {
     if (!user?._id) return;
@@ -146,6 +158,7 @@ const getCartAmount = () => {
   const value = {
     navigate,
     user,
+  
     setUser,
     isSeller,
     setIsSeller,
@@ -164,7 +177,8 @@ const getCartAmount = () => {
     getCartCount,
     getCartAmount,
     axios,
-    API_URL
+    API_URL,
+    refreshUser
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
