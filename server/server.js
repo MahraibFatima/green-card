@@ -7,9 +7,13 @@ const payment = require('./routes/payment');
 const cart = require('./routes/cart');
 const orders = require('./routes/orders');
 const refunds = require('./routes/refunds');
+const upload = require('./routes/upload');
+const user = require('./routes/user');
+const product = require('./routes/product');
 const session = require('express-session');
 require('./conn/conn');
 const cors = require('cors');
+const path = require('path');
 
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -17,6 +21,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -39,6 +44,9 @@ app.use('/api/payment', payment);
 app.use('/api/cart', cart);
 app.use('/api/orders', orders);
 app.use('/api/refunds', refunds);
+app.use('/api/upload', upload);
+app.use('/api/user', user);
+app.use('/api/product', product);
 
 
 app.listen(process.env.PORT, () => {
