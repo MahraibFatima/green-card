@@ -4,15 +4,80 @@ import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 
 const AddProduct=() => {
+  const { user, axios, fetchProducts } = useAppContext();
   const [files, setFiles] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
+  const [loading, setLoading] = useState(false);
   
   const onSubmitHandler = async (event) => {
     event.preventDefault();
+
+    if (!user?._id) {
+      toast.error("Please login again as seller");
+      return;
+    }
+
+    if (Number(offerPrice) > Number(price)) {
+      toast.error("Offer price cannot be greater than product price");
+      return;
+    }
+
+    const validFiles = files.filter(Boolean);
+
+    setLoading(true);
+    try {
+      const uploadedUrls = [];
+
+      for (const file of validFiles) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadResponse = await axios.post("/api/upload/single", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (uploadResponse.data?.success && uploadResponse.data?.file?.url) {
+          uploadedUrls.push(uploadResponse.data.file.url);
+        }
+      }
+
+      const payload = {
+        name: name.trim(),
+        description: description
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean),
+        category,
+        price: Number(price),
+        offerPrice: Number(offerPrice),
+        image: uploadedUrls,
+        sellerId: user._id,
+      };
+
+      const { data } = await axios.post("/api/product/create", payload);
+
+      if (!data?.success) {
+        toast.error(data?.message || "Failed to add product");
+        return;
+      }
+
+      toast.success("Product added successfully");
+      setFiles([]);
+      setName("");
+      setDescription("");
+      setCategory("");
+      setPrice("");
+      setOfferPrice("");
+      fetchProducts();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="no-scrollbar flex-1 h-[95vh] overflow-y-scroll flex flex-col justify-between">
@@ -131,8 +196,11 @@ const AddProduct=() => {
             />
           </div>
         </div>
-        <button className="px-8 py-2.5 bg-primary text-white font-medium rounded">
-          ADD
+        <button
+          disabled={loading}
+          className="px-8 py-2.5 bg-primary text-white font-medium rounded disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? "ADDING..." : "ADD"}
         </button>
       </form>
     </div>
