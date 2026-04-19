@@ -2,15 +2,19 @@ import React from "react";
 import { useAppContext } from "../../context/AppContext";
 import { assets } from "../../assets/assets";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import toast from "react-hot-toast";
+import { MdForwardToInbox } from "react-icons/md";
+import { LuLayoutDashboard } from "react-icons/lu";
+
 
 function SellerLayout() {
   const { setIsSeller, user } = useAppContext();
 
   const sidebarLinks = [
-    { name: "Add Product", path: "/seller", icon: assets.add_icon },
-    { name: "Product List", path: "/seller/product-list", icon: assets.product_list_icon,},
-    { name: "Orders", path: "/seller/orders", icon: assets.order_icon },
+    { name: "Shop Dashboard", path: "/seller/shop-dashboard", icon: LuLayoutDashboard, isImage:false},
+    { name: "Add Product", path: "/seller", icon: assets.add_icon, isImage:true},
+    { name: "Product List", path: "/seller/product-list", icon: assets.product_list_icon, isImage:true},
+    { name: "Orders", path: "/seller/orders", icon: assets.order_icon, isImage:true},
+    {name: "Inbox", path: "/seller/inbox", icon: MdForwardToInbox , isImage:false}
   ];
 
   const logout = async () => {
@@ -52,7 +56,11 @@ function SellerLayout() {
                                 : "hover:bg-gray-100/90 border-white"
                             }`}
             >
-              <img src={item.icon} alt="icon" className="w-7 h-7" />
+              {item.isImage ? (
+                <img src={item.icon} alt="icon" className="w-7 h-7" />
+              ) : (
+                <item.icon className="w-7 h-7" />
+              )}
               <p className="md:block hidden text-center">{item.name}</p>
             </NavLink>
           ))}
