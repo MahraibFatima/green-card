@@ -36,3 +36,127 @@ export const faqs = [
 			"Use a strong password, avoid sharing your login details, and sign out from shared devices.",
 	},
 ];
+
+export const customerChats = [
+	{
+		id: 1,
+		customer: "Aisha Khan",
+		avatar:
+			"https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+		orderNo: "GC-3912",
+		lastMessage: "Please add one extra kilo if available.",
+		time: "10:20 AM",
+		unread: 1,
+	},
+	{
+		id: 2,
+		customer: "Rahul Sharma",
+		avatar:
+			"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80",
+		orderNo: "GC-3874",
+		lastMessage: "Thanks, delivered on time.",
+		time: "Yesterday",
+		unread: 0,
+	},
+	{
+		id: 3,
+		customer: "Nora Ali",
+		avatar:
+			"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80",
+		orderNo: "GC-3821",
+		lastMessage: "Can I reschedule for evening?",
+		time: "Sat",
+		unread: 3,
+	},
+];
+
+
+export const vendorThread = [
+	{
+		id: 1,
+		from: "customer",
+		text: "Thank you. Can you confirm if mangoes are ripe?",
+		time: "10:15 AM",
+	},
+	{
+		id: 2,
+		from: "seller",
+		text: "Yes, this batch is ripe and fresh. Great for direct use.",
+		time: "10:17 AM",
+	},
+	{
+		id: 3,
+		from: "customer",
+		text: "Perfect. Please add one extra kilo if available.",
+		time: "10:20 AM",
+	},
+	{
+		id: 4,
+		from: "seller",
+		text: "Added successfully. Updated total is shown in your order.",
+		time: "10:21 AM",
+	},
+];
+
+export const userConversations = [
+	{
+		id: 1,
+		vendor: "Green Mart",
+		avatar:
+			"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=80&q=80",
+		lastMessage: "Your order is packed and ready for dispatch.",
+		time: "10:22 AM",
+		unread: 2,
+	},
+	{
+		id: 2,
+		vendor: "Fresh Basket",
+		avatar:
+			"https://images.unsplash.com/photo-1518164147695-36c13dd568f2?auto=format&fit=crop&w=80&q=80",
+		lastMessage: "We added your missing item refund.",
+		time: "Yesterday",
+		unread: 0,
+	},
+	{
+		id: 3,
+		vendor: "Organic Hub",
+		avatar:
+			"https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=80&q=80",
+		lastMessage: "Can you confirm delivery slot for tomorrow?",
+		time: "Sun",
+		unread: 1,
+	},
+];
+
+export const thread = [
+	{
+		id: 1,
+		from: "vendor",
+		text: "Hi Aisha, thanks for your order #GC-3912.",
+		time: "10:12 AM",
+	},
+	{
+		id: 2,
+		from: "user",
+		text: "Thank you. Can you confirm if mangoes are ripe?",
+		time: "10:15 AM",
+	},
+	{
+		id: 3,
+		from: "vendor",
+		text: "Yes, this batch is ready to eat in 1-2 days.",
+		time: "10:17 AM",
+	},
+	{
+		id: 4,
+		from: "user",
+		text: "Perfect. Please add one extra kilo if available.",
+		time: "10:20 AM",
+	},
+	{
+		id: 5,
+		from: "vendor",
+		text: "Done. Your order is packed and ready for dispatch.",
+		time: "10:22 AM",
+	},
+];
