@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { dummyProducts } from "../assets/assets";
 import axios from "axios";
 
 export const AppContext = createContext();
@@ -128,10 +127,18 @@ export const AppContextProvider = ({ children }) => {
       }
     }
   };
-
-const fetchProducts = async() => {
-        setProducts(dummyProducts);
+const fetchProducts = async() =>{
+  try{
+    const {data} = await axios.get("/api/product/list");
+    if(data.success){
+      setProducts(data.products || []);
+    }else{
+      toast.error(data.message || "Failed to fetch products");
     }
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch products");
+  }
+};
 const getCartCount = () => {
     let count = 0;
     for (let key in cartItems) {
@@ -178,7 +185,8 @@ const getCartAmount = () => {
     getCartAmount,
     axios,
     API_URL,
-    refreshUser
+    refreshUser,
+    fetchProducts,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
