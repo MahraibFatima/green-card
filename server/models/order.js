@@ -11,6 +11,9 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
       },
+      sellerId: {
+        type: String,
+      },
       product: {
         name: { type: String, required: true },
         image: [String],
@@ -30,11 +33,22 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   address: {
+    firstName: { type: String },
+    lastName: { type: String },
+    email: { type: String },
+    phone: { type: String },
     street: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     zipCode: { type: String },
+    zipcode: { type: String },
     country: { type: String, required: true }
+  },
+  customer: {
+    userId: { type: String },
+    name: { type: String },
+    email: { type: String },
+    phone: { type: String },
   },
   paymentType: {
     type: String,

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
+const User = require('../models/user');
 
 const STATUS_FLOW = ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered'];
-const STATUS_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const STATUS_INTERVAL_MS = 12 * 60 * 60 * 1000;
 
 const STEP_LABELS = {
   placed: 'Order Placed',
@@ -54,7 +55,7 @@ const maybeAdvanceOrderStatus = async (order) => {
     const nextStatus = STATUS_FLOW[i];
     order.statusHistory.push({
       status: nextStatus,
-      note: `Auto-updated to ${STEP_LABELS[nextStatus]} after 6 hours`,
+      note: `Auto-updated to ${STEP_LABELS[nextStatus]} after 12 hours`,
       timestamp: new Date(createdAt.getTime() + i * STATUS_INTERVAL_MS),
     });
   }
@@ -67,7 +68,7 @@ const maybeAdvanceOrderStatus = async (order) => {
 // Create a new order
 router.post('/', async (req, res) => {
   try {
-    const { userId, items, address, paymentType, amount, status } = req.body;
+    const { userId, items, address, paymentType, amount, status, customer } = req.body;
     const initialStatus = status || 'placed';
 
     console.log('Received order data:', JSON.stringify(req.body, null, 2));
@@ -83,6 +84,7 @@ router.post('/', async (req, res) => {
       userId,
       items,
       address,
+      customer,
       paymentType: paymentType || 'COD',
       amount,
       status: initialStatus,
@@ -160,6 +162,84 @@ router.get('/:userId/:orderId/tracking', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch tracking details',
+      error: error.message,
+    });
+  }
+});
+
+// Get all orders containing products that belong to a seller
+router.get('/seller/:sellerId', async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    const orders = await Order.find({ 'items.sellerId': sellerId }).sort({ createdAt: -1 });
+
+    await Promise.all(orders.map((order) => maybeAdvanceOrderStatus(order)));
+
+    const userIds = [...new Set(orders.map((order) => order.userId).filter(Boolean))];
+    const users = await User.find({ _id: { $in: userIds } }).select('name email addresses');
+    const userMap = new Map(users.map((user) => [String(user._id), user]));
+
+    const sellerOrders = orders
+      .map((orderDoc) => {
+        const order = orderDoc.toObject();
+        const sellerItems = (order.items || []).filter(
+          (item) => String(item.sellerId || '') === String(sellerId)
+        );
+
+        if (sellerItems.length === 0) {
+          return null;
+        }
+
+        const user = userMap.get(String(order.userId));
+        const fallbackAddress = user?.addresses?.[0] || {};
+
+        const customerName =
+          order.customer?.name ||
+          user?.name ||
+          [order.address?.firstName, order.address?.lastName].filter(Boolean).join(' ').trim() ||
+          'Customer';
+
+        const customerEmail = order.customer?.email || user?.email || order.address?.email || '';
+        const customerPhone = order.customer?.phone || order.address?.phone || fallbackAddress.phone || '';
+
+        return {
+          ...order,
+          items: sellerItems,
+          sellerAmount: sellerItems.reduce(
+            (sum, item) => sum + Number(item.price || item.product?.offerPrice || 0) * Number(item.quantity || 0),
+            0
+          ),
+          customer: {
+            userId: order.userId,
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone,
+          },
+          address: {
+            street: order.address?.street || fallbackAddress.street || '',
+            city: order.address?.city || fallbackAddress.city || '',
+            state: order.address?.state || fallbackAddress.state || '',
+            zipCode:
+              order.address?.zipCode ||
+              order.address?.zipcode ||
+              (fallbackAddress.zipcode ? String(fallbackAddress.zipcode) : ''),
+            country: order.address?.country || fallbackAddress.country || '',
+            phone: order.address?.phone || fallbackAddress.phone || '',
+          },
+        };
+      })
+      .filter(Boolean);
+
+    return res.status(200).json({
+      success: true,
+      orders: sellerOrders,
+    });
+  } catch (error) {
+    console.error('Error fetching seller orders:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch seller orders',
       error: error.message,
     });
   }
