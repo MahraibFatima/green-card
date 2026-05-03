@@ -2,7 +2,12 @@
 
 Short, modern shopping web app with buyer & seller flows, built with a React frontend and a Node/Express backend backed by MongoDB. This repo contains the full client + server for a small commerce platform (products, cart, orders, sellers, refunds, uploads, email).
 
+## Demo
+
+https://github.com/user-attachments/assets/2a3fd0cd-c47c-4b90-9d5d-5867a7f0faf4
+
 What this README is: a compact case-study for devs... quick setup, architecture, core features, and near-term improvements. Gen Z dev voice = clear, direct, and pragmatic.
+
 
 **Quick TL;DR**: frontend in `client/`, backend in `server/`. Work locally with separate dev servers. Use MongoDB for data persistence and local `uploads/` for images.
 
