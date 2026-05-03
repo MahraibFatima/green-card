@@ -21,6 +21,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.2",
     "multer": "^2.1.1",
+    "axios": "^1.5.0",
+    "form-data": "^4.0.0",
     "nodemailer": "^8.0.1",
     "stripe": "^20.1.0"
   },
