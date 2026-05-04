@@ -25,7 +25,7 @@ import Refund from "./pages/Refund";
 import Tracking from "./pages/Tracking";
 import PaymentMethods from "./pages/PaymentMethods";
 import Inbox from "./pages/Inbox";
-import { ProtectedRoute, PublicRoute, SellerProtectedRoute } from "./routes/protectedRoutes";
+import { ProtectedRoute, PublicRoute } from "./routes/protectedRoutes";
 import { ShopDashboard } from "./routes/shopRoutes";
 import SellerInbox from "./pages/Seller/SellerInbox";
 function App() {
@@ -59,7 +59,7 @@ function App() {
           <Route path="/payment-methods" element={<ProtectedRoute element={<PaymentMethods />} />} />
           <Route path="/inbox" element={<ProtectedRoute element={<Inbox />} />} />
           <Route path="/loader" element={<Loading />} />
-          <Route path="/seller" element={<SellerProtectedRoute element={isSeller ? <SellerLayout /> : <SellerLogin />} isSeller={isSeller} />}>
+          <Route path="/seller" element={isSeller ? <SellerLayout /> : <SellerLogin />}>
             <Route path="shop-dashboard" element={<ShopDashboard />} />
             <Route index element={isSeller ? <AddProduct /> : null} />
             <Route path="product-list" element={<ProductList />} />

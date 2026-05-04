@@ -25,11 +25,5 @@ export const PublicRoute = ({ element }) => {
 }; 
 
 export const SellerProtectedRoute = ({ element, isSeller }) => {
-  const { user } = useAppContext();
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
   return element;
 };
