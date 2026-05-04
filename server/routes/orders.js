@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/order');
 const User = require('../models/user');
+const Product = require('../models/product');
 
 const STATUS_FLOW = ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered'];
 const STATUS_INTERVAL_MS = 12 * 60 * 60 * 1000;
@@ -17,19 +18,43 @@ const STEP_LABELS = {
 
 const buildSellerOrders = async (sellerId) => {
   const orders = await Order.find({ 'items.sellerId': sellerId }).sort({ createdAt: -1 });
+  const fallbackOrders = await Order.find({ 'items.productId': { $exists: true } }).sort({ createdAt: -1 });
 
-  await Promise.all(orders.map((order) => maybeAdvanceOrderStatus(order)));
+  const productIds = [...new Set(
+    fallbackOrders.flatMap((order) => (order.items || []).map((item) => item.productId).filter(Boolean))
+  )];
+  const products = await Product.find({ _id: { $in: productIds } }).select('_id sellerId');
+  const productSellerMap = new Map(products.map((product) => [String(product._id), String(product.sellerId || '')]));
 
-  const userIds = [...new Set(orders.map((order) => order.userId).filter(Boolean))];
+  const orderMap = new Map(orders.map((order) => [String(order._id), order]));
+  fallbackOrders.forEach((order) => {
+    const hasMatchingItem = (order.items || []).some((item) => {
+      const directSellerMatch = String(item.sellerId || '') === String(sellerId);
+      const fallbackSellerMatch = !item.sellerId && String(productSellerMap.get(String(item.productId)) || '') === String(sellerId);
+      return directSellerMatch || fallbackSellerMatch;
+    });
+
+    if (hasMatchingItem && !orderMap.has(String(order._id))) {
+      orderMap.set(String(order._id), order);
+    }
+  });
+
+  const enrichedOrders = [...orderMap.values()].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  await Promise.all(enrichedOrders.map((order) => maybeAdvanceOrderStatus(order)));
+
+  const userIds = [...new Set(enrichedOrders.map((order) => order.userId).filter(Boolean))];
   const users = await User.find({ _id: { $in: userIds } }).select('name email addresses');
   const userMap = new Map(users.map((user) => [String(user._id), user]));
 
-  return orders
+  return enrichedOrders
     .map((orderDoc) => {
       const order = orderDoc.toObject();
-      const sellerItems = (order.items || []).filter(
-        (item) => String(item.sellerId || '') === String(sellerId)
-      );
+      const sellerItems = (order.items || []).filter((item) => {
+        const directSellerMatch = String(item.sellerId || '') === String(sellerId);
+        const fallbackSellerMatch = !item.sellerId && String(productSellerMap.get(String(item.productId)) || '') === String(sellerId);
+        return directSellerMatch || fallbackSellerMatch;
+      });
 
       if (sellerItems.length === 0) {
         return null;
