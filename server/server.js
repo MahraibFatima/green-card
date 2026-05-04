@@ -10,6 +10,7 @@ const refunds = require('./routes/refunds');
 const upload = require('./routes/upload');
 const user = require('./routes/user');
 const product = require('./routes/product');
+const seller = require('./routes/seller');
 const session = require('express-session');
 require('./conn/conn');
 const cors = require('cors');
@@ -47,6 +48,7 @@ app.use('/api/refunds', refunds);
 app.use('/api/upload', upload);
 app.use('/api/user', user);
 app.use('/api/product', product);
+app.use('/api/seller', seller);
 
 
 app.listen(process.env.PORT, () => {
